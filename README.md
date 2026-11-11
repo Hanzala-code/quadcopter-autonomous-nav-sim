@@ -3,6 +3,16 @@
 
 Point-to-point autonomous navigation with obstacle detection and replanning for a PX4 x500-style quadcopter in a 20×20 m arena.
 
+
+
+https://github.com/user-attachments/assets/55fb3e4f-cc38-4589-84d8-67e12df87e1a
+
+
+
+<img width="1536" height="1024" alt="8ad5ab6b-8ff9-401b-8dcb-157e4da98c54" src="https://github.com/user-attachments/assets/f32a211c-3cb0-4121-9557-f99c7602596f" />
+
+
+
 ## Features
 - GPS (NavSat) → local odometry conversion, dynamic TF (`world → base_link → camera`)
 - Front RGBD camera → point cloud → voxel clustering → 3D obstacle bounding boxes
