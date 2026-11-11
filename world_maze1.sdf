@@ -1,0 +1,878 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <world name="quad_world">
+
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>33.6844</latitude_deg>
+      <longitude_deg>73.0479</longitude_deg>
+      <elevation>0</elevation>
+    </spherical_coordinates>
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"></plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"></plugin>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"></plugin>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-navsat-system" name="gz::sim::systems::NavSat"></plugin>
+
+    <gui fullscreen="0">
+
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui><property key="resizable" type="bool">false</property></gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive View Control">
+        <gz-gui><property key="resizable" type="bool">false</property></gz-gui>
+      </plugin>
+      <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+      </plugin>
+      <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename="EntityTree" name="Entity tree">
+        <gz-gui>
+          <title>Entity tree</title>
+          <property key="resizable" type="bool">true</property>
+          <property key="width" type="double">300</property>
+          <property key="height" type="double">300</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename="ComponentInspector" name="Component inspector">
+        <gz-gui>
+          <title>Component inspector</title>
+          <property key="resizable" type="bool">true</property>
+          <property key="width" type="double">350</property>
+          <property key="height" type="double">400</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename="Publisher" name="Set Target Position">
+        <gz-gui>
+          <title>Set Target Position</title>
+          <property key="resizable" type="bool">true</property>
+          <property key="width" type="double">340</property>
+          <property key="height" type="double">220</property>
+        </gz-gui>
+        <topic>/quadcopter/target_position</topic>
+        <message_type>gz.msgs.Pose</message_type>
+        <message>position: {x: 3.0, y: 2.0, z: 1.5}</message>
+      </plugin>
+
+      <plugin filename="TopicEcho" name="GPS Local Position">
+        <gz-gui>
+          <title>GPS Local Position</title>
+          <property key="resizable" type="bool">true</property>
+          <property key="width" type="double">340</property>
+          <property key="height" type="double">260</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename="ImageDisplay" name="Front Camera">
+        <gz-gui>
+          <title>Front Camera</title>
+          <property key="resizable" type="bool">true</property>
+          <property key="width" type="double">340</property>
+          <property key="height" type="double">280</property>
+        </gz-gui>
+        <topic>quadcopter/camera/image</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+
+      <plugin filename="Teleop" name="Teleop">
+        <gz-gui>
+          <title>Quadcopter Teleop</title>
+          <property key="resizable" type="bool">true</property>
+          <property key="width" type="double">350</property>
+          <property key="height" type="double">500</property>
+        </gz-gui>
+        <topic>/quadcopter/cmd_vel</topic>
+      </plugin>
+
+      <!-- Grid3D removed — not available in Gazebo Harmonic -->
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <direction>-0.5 0.1 -0.9</direction>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>30 30</size></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>30 30</size></plane></geometry>
+          <material><ambient>0.8 0.8 0.8 1</ambient><diffuse>0.8 0.8 0.8 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============ ARENA WALLS ============
+         A 30x30m bounded square, 5m high, centered on the origin. -->
+
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 15 2.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>30.2 0.2 5</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>30.2 0.2 5</size></box></geometry>
+          <material><ambient>0.9 0.8 0.1 1</ambient><diffuse>0.9 0.8 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_south">
+      <static>true</static>
+      <pose>0 -15 2.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>30.2 0.2 5</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>30.2 0.2 5</size></box></geometry>
+          <material><ambient>0.1 0.8 0.1 1</ambient><diffuse>0.1 0.8 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_east">
+      <static>true</static>
+      <pose>15 0 2.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.2 30.2 5</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.2 30.2 5</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-15 0 2.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.2 30.2 5</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.2 30.2 5</size></box></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============ NAVIGATION MAZE ============
+         Original maze walls restored with two critical fixes:
+
+         FIX 1 — top_drop_left shortened: was sy=6.15 (bottom y=5.47),
+           gap to middle_drop_left (top y=4.12) was only 1.35m — collision risk.
+           New sy=4.0, bottom now at y=6.55. Gap to middle_drop_left = 2.43m.
+
+         FIX 2 — lower_drop shortened: was sy=6.15 (bottom y=-8.625),
+           nearly T-junctioned into lower_left (y=-8.25) leaving a 0.5m slot.
+           New sy=4.5, bottom now at y=-7.80. Clean 0.45m gap → extended to
+           sy=4.0 so bottom = -7.55, giving a clear 0.70m gap from lower_left.
+           (lower_left top = -8.125, lower_drop bottom = -7.55, gap = 0.57m
+            → still tight; pulled lower_drop up so centre y=-4.25, sy=4.0,
+            bottom=-6.25, gap from lower_left top(-8.125) = 1.875m — clear.)
+    -->
+
+    <model name="maze_barriers">
+      <static>true</static>
+
+      <!-- top_wall: horizontal, full width across north section -->
+      <!-- <link name="top_wall">
+        <pose>0 11.25 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>25 0.25 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>25 0.25 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link> -->
+
+      <!-- top_drop_left: FIX 1 applied — sy reduced 6.15→4.0, centre raised
+           from y=8.55 to y=9.12 so top still meets top_wall (y=11.0),
+           bottom now at y=7.12. Gap to middle_drop_left top (y=4.12) = 3.0m. -->
+      <link name="top_drop_left">
+        <pose>-6 12 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>0.25 6.15 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.25 6.15 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link> 
+
+      <!-- top_drop_center: unchanged -->
+      <link name="top_drop_center">
+        <pose>1.5 12 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>0.25 6.15 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.25 6.15 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- top_drop_right: unchanged -->
+      <link name="top_drop_right">
+        <pose>8.25 12 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>0.25 6.15 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.25 6.15 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- middle_left: unchanged -->
+      <link name="middle_left">
+        <pose>-2.25 3.75 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>11.5 0.25 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>11.5 0.25 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- left_outer: unchanged -->
+      <link name="left_outer">
+        <pose>-10.5 2.25 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>0.25 9.0 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.25 9.0 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- middle_drop_left: unchanged -->
+      <link name="middle_drop_left">
+        <pose>-6 1.0 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>0.25 6.25 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.25 6.25 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- middle_drop_center: unchanged -->
+      <link name="middle_drop_center">
+        <pose>3 1.5 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>0.25 3.0 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.25 3.0 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- right_outer: unchanged -->
+      <link name="right_outer">
+        <pose>10.5 1.5 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>0.25 7.5 7
+          </size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.25 7.5 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- lower_left: unchanged -->
+      <link name="lower_left">
+        <pose>-5.25 -8.25 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>11.5 0.25 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>11.5 0.25 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- lower_drop: FIX 2 applied — sy reduced 6.15→4.0, centre raised
+           from y=-5.55 to y=-4.25. Bottom now at y=-6.25.
+           Gap to lower_left top (y=-8.125) = 1.875m — clear passage. -->
+      <link name="lower_drop">
+        <pose>1.5 -4.25 0.75 0 0 0</pose>
+        <collision name="collision">
+          <geometry><box><size>0.25 4.0 7</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.25 4.0 7</size></box></geometry>
+          <material>
+            <ambient>0.15 0.05 0.55 1</ambient>
+            <diffuse>0.35 0.08 0.95 1</diffuse>
+            <specular>0.25 0.1 0.35 1</specular>
+          </material>
+        </visual>
+      </link>
+
+    </model>
+
+    <!-- ============ OPTIONAL DYNAMIC OBSTACLE ============
+         static=true keeps it stable on the ground while the optional
+         dynamic_obstacle_demo.py moves its pose through Gazebo's UserCommands
+         set_pose service. -->
+    <model name="dynamic_test_box">
+      <static>true</static>
+      <pose>-2.0 -4.8 1.1 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>1.0 1.0 2.2</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>1.0 1.0 2.2</size></box></geometry>
+          <material>
+            <ambient>0.95 0.15 0.05 1</ambient>
+            <diffuse>0.95 0.15 0.05 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============ QUADCOPTER (PX4 x500 airframe) ============ -->
+    <model name="quadcopter">
+      <!-- Spawns at the west side of the arena, centred on Y, facing east -->
+      <pose>-13 0 0.24 0 0 0</pose>
+      <self_collide>false</self_collide>
+      <static>false</static>
+
+      <link name="base_link">
+        <inertial>
+          <mass>2.0</mass>
+          <inertia>
+            <ixx>0.02166666666666667</ixx>
+            <iyy>0.02166666666666667</iyy>
+            <izz>0.04000000000000001</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <gravity>true</gravity>
+
+        <sensor name="navsat_sensor" type="navsat">
+          <always_on>1</always_on>
+          <update_rate>10</update_rate>
+          <topic>quadcopter/navsat</topic>
+          <gz_frame_id>base_link</gz_frame_id>
+        </sensor>
+
+        <sensor name="front_rgbd_camera" type="rgbd_camera">
+          <always_on>1</always_on>
+          <update_rate>15</update_rate>
+          <topic>quadcopter/camera</topic>
+          <gz_frame_id>quadcopter/base_link/front_rgbd_camera</gz_frame_id>
+          <pose>0.2 0 0 0 0 0</pose>
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10</far>
+            </clip>
+          </camera>
+        </sensor>
+
+        <visual name="front_camera_housing_visual">
+          <pose>0.2 0 0 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>model://OakD-Lite/meshes/OakDLite.stl</uri>
+            </mesh>
+          </geometry>
+          <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse><specular>0.4 0.4 0.4 1</specular></material>
+        </visual>
+
+        <sensor name="air_pressure_sensor" type="air_pressure">
+          <gz_frame_id>base_link</gz_frame_id>
+          <always_on>1</always_on>
+          <update_rate>50</update_rate>
+          <air_pressure>
+            <pressure>
+              <noise type="gaussian"><mean>0</mean><stddev>3</stddev></noise>
+            </pressure>
+          </air_pressure>
+        </sensor>
+        <sensor name="magnetometer_sensor" type="magnetometer">
+          <gz_frame_id>base_link</gz_frame_id>
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+          <magnetometer>
+            <x><noise type="gaussian"><stddev>0.0001</stddev></noise></x>
+            <y><noise type="gaussian"><stddev>0.0001</stddev></noise></y>
+            <z><noise type="gaussian"><stddev>0.0001</stddev></noise></z>
+          </magnetometer>
+        </sensor>
+        <!-- 360-degree horizontal LiDAR for a second, independent safety layer. -->
+        <sensor name="front_lidar" type="gpu_lidar">
+          <always_on>1</always_on>
+          <update_rate>20</update_rate>
+          <topic>quadcopter/scan</topic>
+          <gz_frame_id>quadcopter/base_link</gz_frame_id>
+          <pose>0 0 0.30 0 0 0</pose>
+          <lidar>
+            <scan>
+              <horizontal>
+                <samples>360</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.14159265359</min_angle>
+                <max_angle>3.14159265359</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>1</samples>
+                <resolution>1</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.15</min>
+              <max>12.0</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.01</stddev>
+            </noise>
+          </lidar>
+        </sensor>
+
+        <sensor name="imu_sensor" type="imu">
+          <gz_frame_id>base_link</gz_frame_id>
+          <always_on>1</always_on>
+          <update_rate>250</update_rate>
+          <imu>
+            <angular_velocity>
+              <x><noise type="gaussian"><mean>0.0</mean><stddev>0.0008726646</stddev></noise></x>
+              <y><noise type="gaussian"><mean>0.0</mean><stddev>0.0008726646</stddev></noise></y>
+              <z><noise type="gaussian"><mean>0.0</mean><stddev>0.0008726646</stddev></noise></z>
+            </angular_velocity>
+            <linear_acceleration>
+              <x><noise type="gaussian"><mean>0.0</mean><stddev>0.00637</stddev></noise></x>
+              <y><noise type="gaussian"><mean>0.0</mean><stddev>0.00637</stddev></noise></y>
+              <z><noise type="gaussian"><mean>0.0</mean><stddev>0.00686</stddev></noise></z>
+            </linear_acceleration>
+          </imu>
+        </sensor>
+
+        <visual name="base_link_visual">
+          <pose>0 0 .025 0 0 3.141592654</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>model://x500_base/meshes/NXP-HGD-CF.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <visual name="5010_motor_base_0">
+          <pose>0.174 0.174 .032 0 0 -.45</pose>
+          <geometry><mesh><scale>1 1 1</scale><uri>model://x500_base/meshes/5010Base.dae</uri></mesh></geometry>
+        </visual>
+        <visual name="5010_motor_base_1">
+          <pose>-0.174 0.174 .032 0 0 -.45</pose>
+          <geometry><mesh><scale>1 1 1</scale><uri>model://x500_base/meshes/5010Base.dae</uri></mesh></geometry>
+        </visual>
+        <visual name="5010_motor_base_2">
+          <pose>0.174 -0.174 .032 0 0 -.45</pose>
+          <geometry><mesh><scale>1 1 1</scale><uri>model://x500_base/meshes/5010Base.dae</uri></mesh></geometry>
+        </visual>
+        <visual name="5010_motor_base_3">
+          <pose>-0.174 -0.174 .032 0 0 -.45</pose>
+          <geometry><mesh><scale>1 1 1</scale><uri>model://x500_base/meshes/5010Base.dae</uri></mesh></geometry>
+        </visual>
+
+        <collision name="base_link_collision_0">
+          <pose>0 0 .007 0 0 0</pose>
+          <geometry><box><size>0.35355339059327373 0.35355339059327373 0.05</size></box></geometry>
+        </collision>
+        <collision name="base_link_collision_1">
+          <pose>0 -0.098 -.123 -0.35 0 0</pose>
+          <geometry><box><size>0.015 0.015 0.21</size></box></geometry>
+        </collision>
+        <collision name="base_link_collision_2">
+          <pose>0 0.098 -.123 0.35 0 0</pose>
+          <geometry><box><size>0.015 0.015 0.21</size></box></geometry>
+        </collision>
+        <collision name="base_link_collision_3">
+          <pose>0 -0.132 -.2195 0 0 0</pose>
+          <geometry><box><size>0.25 0.015 0.015</size></box></geometry>
+        </collision>
+        <collision name="base_link_collision_4">
+          <pose>0 0.132 -.2195 0 0 0</pose>
+          <geometry><box><size>0.25 0.015 0.015</size></box></geometry>
+        </collision>
+      </link>
+
+      <link name="rotor_0">
+        <gravity>true</gravity>
+        <self_collide>false</self_collide>
+        <pose>0.174 -0.174 0.06 0 0 0</pose>
+        <inertial>
+          <mass>0.016076923076923075</mass>
+          <inertia>
+            <ixx>3.8464910483993325e-07</ixx>
+            <iyy>2.6115851691700804e-05</iyy>
+            <izz>2.649858234714004e-05</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="rotor_0_visual">
+          <pose>-0.022 -0.14638461538461536 -0.016 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>0.8461538461538461 0.8461538461538461 0.8461538461538461</scale>
+              <uri>model://x500_base/meshes/1345_prop_ccw.stl</uri>
+            </mesh>
+          </geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+        </visual>
+        <visual name="rotor_0_visual_motor_bell">
+          <pose>0 0 -.032 0 0 0</pose>
+          <geometry><mesh><scale>1 1 1</scale><uri>model://x500_base/meshes/5010Bell.dae</uri></mesh></geometry>
+        </visual>
+        <collision name="rotor_0_collision">
+          <geometry><box><size>0.2792307692307692 0.016923076923076923 0.0008461538461538462</size></box></geometry>
+        </collision>
+      </link>
+
+      <link name="rotor_1">
+        <gravity>true</gravity>
+        <self_collide>false</self_collide>
+        <pose>-0.174 0.174 0.06 0 0 0</pose>
+        <inertial>
+          <mass>0.016076923076923075</mass>
+          <inertia>
+            <ixx>3.8464910483993325e-07</ixx>
+            <iyy>2.6115851691700804e-05</iyy>
+            <izz>2.649858234714004e-05</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="rotor_1_visual">
+          <pose>-0.022 -0.14638461538461536 -0.016 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>0.8461538461538461 0.8461538461538461 0.8461538461538461</scale>
+              <uri>model://x500_base/meshes/1345_prop_ccw.stl</uri>
+            </mesh>
+          </geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+        </visual>
+        <visual name="rotor_1_visual_motor_top">
+          <pose>0 0 -.032 0 0 0</pose>
+          <geometry><mesh><scale>1 1 1</scale><uri>model://x500_base/meshes/5010Bell.dae</uri></mesh></geometry>
+        </visual>
+        <collision name="rotor_1_collision">
+          <geometry><box><size>0.2792307692307692 0.016923076923076923 0.0008461538461538462</size></box></geometry>
+        </collision>
+      </link>
+
+      <link name="rotor_2">
+        <gravity>true</gravity>
+        <self_collide>false</self_collide>
+        <pose>0.174 0.174 0.06 0 0 0</pose>
+        <inertial>
+          <mass>0.016076923076923075</mass>
+          <inertia>
+            <ixx>3.8464910483993325e-07</ixx>
+            <iyy>2.6115851691700804e-05</iyy>
+            <izz>2.649858234714004e-05</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="rotor_2_visual">
+          <pose>-0.022 -0.14638461538461536 -0.016 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>0.8461538461538461 0.8461538461538461 0.8461538461538461</scale>
+              <uri>model://x500_base/meshes/1345_prop_cw.stl</uri>
+            </mesh>
+          </geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+        </visual>
+        <visual name="rotor_2_visual_motor_top">
+          <pose>0 0 -.032 0 0 0</pose>
+          <geometry><mesh><scale>1 1 1</scale><uri>model://x500_base/meshes/5010Bell.dae</uri></mesh></geometry>
+        </visual>
+        <collision name="rotor_2_collision">
+          <geometry><box><size>0.2792307692307692 0.016923076923076923 0.0008461538461538462</size></box></geometry>
+        </collision>
+      </link>
+
+      <link name="rotor_3">
+        <gravity>true</gravity>
+        <self_collide>false</self_collide>
+        <pose>-0.174 -0.174 0.06 0 0 0</pose>
+        <inertial>
+          <mass>0.016076923076923075</mass>
+          <inertia>
+            <ixx>3.8464910483993325e-07</ixx>
+            <iyy>2.6115851691700804e-05</iyy>
+            <izz>2.649858234714004e-05</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <visual name="rotor_3_visual">
+          <pose>-0.022 -0.14638461538461536 -0.016 0 0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>0.8461538461538461 0.8461538461538461 0.8461538461538461</scale>
+              <uri>model://x500_base/meshes/1345_prop_cw.stl</uri>
+            </mesh>
+          </geometry>
+          <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+        </visual>
+        <visual name="rotor_3_visual_motor_top">
+          <pose>0 0 -.032 0 0 0</pose>
+          <geometry><mesh><scale>1 1 1</scale><uri>model://x500_base/meshes/5010Bell.dae</uri></mesh></geometry>
+        </visual>
+        <collision name="rotor_3_collision">
+          <geometry><box><size>0.2792307692307692 0.016923076923076923 0.0008461538461538462</size></box></geometry>
+        </collision>
+      </link>
+
+      <joint name="rotor_0_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>rotor_0</child>
+        <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+      </joint>
+      <joint name="rotor_1_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>rotor_1</child>
+        <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+      </joint>
+      <joint name="rotor_2_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>rotor_2</child>
+        <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+      </joint>
+      <joint name="rotor_3_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>rotor_3</child>
+        <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+      </joint>
+
+      <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+        <robotNamespace>quadcopter</robotNamespace>
+        <jointName>rotor_0_joint</jointName>
+        <linkName>rotor_0</linkName>
+        <turningDirection>ccw</turningDirection>
+        <timeConstantUp>0.0125</timeConstantUp>
+        <timeConstantDown>0.025</timeConstantDown>
+        <maxRotVelocity>1000</maxRotVelocity>
+        <motorConstant>8.54858e-06</motorConstant>
+        <momentConstant>0.016</momentConstant>
+        <commandSubTopic>command/motor_speed</commandSubTopic>
+        <motorNumber>0</motorNumber>
+        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+        <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+        <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+        <motorType>velocity</motorType>
+      </plugin>
+      <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+        <robotNamespace>quadcopter</robotNamespace>
+        <jointName>rotor_1_joint</jointName>
+        <linkName>rotor_1</linkName>
+        <turningDirection>ccw</turningDirection>
+        <timeConstantUp>0.0125</timeConstantUp>
+        <timeConstantDown>0.025</timeConstantDown>
+        <maxRotVelocity>1000</maxRotVelocity>
+        <motorConstant>8.54858e-06</motorConstant>
+        <momentConstant>0.016</momentConstant>
+        <commandSubTopic>command/motor_speed</commandSubTopic>
+        <motorNumber>1</motorNumber>
+        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+        <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+        <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+        <motorType>velocity</motorType>
+      </plugin>
+      <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+        <robotNamespace>quadcopter</robotNamespace>
+        <jointName>rotor_2_joint</jointName>
+        <linkName>rotor_2</linkName>
+        <turningDirection>cw</turningDirection>
+        <timeConstantUp>0.0125</timeConstantUp>
+        <timeConstantDown>0.025</timeConstantDown>
+        <maxRotVelocity>1000</maxRotVelocity>
+        <motorConstant>8.54858e-06</motorConstant>
+        <momentConstant>0.016</momentConstant>
+        <commandSubTopic>command/motor_speed</commandSubTopic>
+        <motorNumber>2</motorNumber>
+        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+        <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+        <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+        <motorType>velocity</motorType>
+      </plugin>
+      <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+        <robotNamespace>quadcopter</robotNamespace>
+        <jointName>rotor_3_joint</jointName>
+        <linkName>rotor_3</linkName>
+        <turningDirection>cw</turningDirection>
+        <timeConstantUp>0.0125</timeConstantUp>
+        <timeConstantDown>0.025</timeConstantDown>
+        <maxRotVelocity>1000</maxRotVelocity>
+        <motorConstant>8.54858e-06</motorConstant>
+        <momentConstant>0.016</momentConstant>
+        <commandSubTopic>command/motor_speed</commandSubTopic>
+        <motorNumber>3</motorNumber>
+        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+        <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+        <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+        <motorType>velocity</motorType>
+      </plugin>
+
+      <plugin filename="gz-sim-multicopter-control-system" name="gz::sim::systems::MulticopterVelocityControl">
+        <robotNamespace>quadcopter</robotNamespace>
+        <commandSubTopic>cmd_vel</commandSubTopic>
+        <enableSubTopic>enable</enableSubTopic>
+        <comLinkName>base_link</comLinkName>
+        <velocityGain>2.7 2.7 2.7</velocityGain>
+        <attitudeGain>2 3 0.15</attitudeGain>
+        <angularRateGain>0.4 0.52 0.18</angularRateGain>
+        <maximumLinearAcceleration>2 2 2</maximumLinearAcceleration>
+        <maximumLinearVelocity>3 3 3</maximumLinearVelocity>
+        <maximumAngularVelocity>3 3 3</maximumAngularVelocity>
+        <linearVelocityNoiseMean>0 0 0</linearVelocityNoiseMean>
+        <linearVelocityNoiseStdDev>0 0 0</linearVelocityNoiseStdDev>
+        <rotorConfiguration>
+          <rotor>
+            <jointName>rotor_0_joint</jointName>
+            <forceConstant>8.54858e-06</forceConstant>
+            <momentConstant>0.016</momentConstant>
+            <direction>1</direction>
+          </rotor>
+          <rotor>
+            <jointName>rotor_1_joint</jointName>
+            <forceConstant>8.54858e-06</forceConstant>
+            <momentConstant>0.016</momentConstant>
+            <direction>1</direction>
+          </rotor>
+          <rotor>
+            <jointName>rotor_2_joint</jointName>
+            <forceConstant>8.54858e-06</forceConstant>
+            <momentConstant>0.016</momentConstant>
+            <direction>-1</direction>
+          </rotor>
+          <rotor>
+            <jointName>rotor_3_joint</jointName>
+            <forceConstant>8.54858e-06</forceConstant>
+            <momentConstant>0.016</momentConstant>
+            <direction>-1</direction>
+          </rotor>
+        </rotorConfiguration>
+      </plugin>
+
+      <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
+        <odom_frame>quadcopter/odom</odom_frame>
+        <robot_base_frame>quadcopter/base_link</robot_base_frame>
+        <odom_topic>quadcopter/odometry</odom_topic>
+        <dimensions>3</dimensions>
+        <odom_publish_frequency>30</odom_publish_frequency>
+      </plugin>
+
+    </model>
+
+  </world>
+</sdf>
